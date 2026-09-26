@@ -1,0 +1,7 @@
+PROGRESSIA PRUEBAS - PAQUETE DE PUBLICACION
+Archivos: index.html, logo-progressia.png, vercel.json.
+Destino previsto: proyecto Vercel progressia-panel-pruebas / progressia-pruebas.vercel.app.
+Estado: NO PUBLICADO por falta de acceso autorizado a ese proyecto desde la conexion disponible.
+Pruebas: sintaxis JavaScript validada con node --check; pruebas de interfaz en Chromium con datos y respuestas simulados: invitado, solicitud pendiente, agente aprobado y constructor. El navegador bloquea navegacion local y al despliegue real; no se han hecho pruebas end-to-end del sitio publicado.
+ADVERTENCIA: el aviso de privacidad es BORRADOR y el registro se limita a cuentas/datos ficticios. Antes de usuarios reales: aprobar aviso de privacidad, autorizaciones y proceso independiente de verificacion WFG, revisar GX historico y probar el despliegue con cuentas de prueba.
+No contiene credenciales de servicio. La clave publicable de Supabase es la prevista para el cliente y los permisos deben mantenerse en RLS.
