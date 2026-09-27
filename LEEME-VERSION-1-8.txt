@@ -1,0 +1,5 @@
+PROGRESSIA 1.8 — CENTRO DEL CONSTRUCTOR COMO ACCESO INDEPENDIENTE
+
+El dashboard principal del constructor muestra un botón Centro del Constructor. Solo al pulsarlo aparece el dashboard con 4 indicadores reales/disponibles y herramientas. Cada herramienta abre su sección al pulsar el botón correspondiente. No se inventan cifras de premios ni GX del equipo. Se mantienen las rutas y notas compartidas de la versión 1.7.
+
+ESTADO: prototipo de pruebas, sin datos personales reales. Requiere pruebas con cuentas ficticias conectadas y verificación de publicación en Vercel.
