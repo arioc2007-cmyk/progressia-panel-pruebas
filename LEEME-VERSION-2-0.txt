@@ -1,0 +1,7 @@
+PROGRESSIA 2.0 · CADA AGENTE APROBADO ES TAMBIÉN CONSTRUCTOR DIRECTO
+
+El dashboard personal (ruta compacta, protección, GX, reconocimientos) se conserva para agentes aprobados y el constructor inicial. El Centro del Constructor se añade a todos los agentes aprobados y permite invitar, aprobar y gestionar exclusivamente a sus agentes directos. La ruta personal se edita desde el dashboard; el centro enlaza a ella.
+
+Requiere la migración de Supabase every_approved_agent_can_build_direct_team y allow_constructor_root_own_gx_policy_entries, ya aplicadas al proyecto de pruebas. Las nuevas invitaciones pertenecen al agente que las genera; la declaración de quién registró al agente en WFG sigue siendo independiente.
+
+Solo pruebas con datos ficticios. No publicar para uso real sin revisión de privacidad y pruebas end-to-end.
