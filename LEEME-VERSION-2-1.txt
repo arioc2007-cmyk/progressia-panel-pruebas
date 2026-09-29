@@ -1,0 +1,11 @@
+PROGRESSIA 2.1 — GESTIÓN INTELIGENTE
+
+Incluye:
+- GX, producción registrada y cash flow estimado en agentes del equipo.
+- Niveles de comisión declarados: Trainee Asociado 25%, Asociado 35%, Manager 50%, Agencia 65%.
+- Agenda/calendario con tareas, eventos, edición y recordatorios dentro de la app.
+- Buscador del dashboard.
+- Asistente Progressia con resumen local y mejora opcional mediante IA segura.
+
+IMPORTANTE: para activar la mejora con IA, configurar OPENAI_API_KEY como variable de entorno en Vercel. Nunca poner la clave en index.html.
+Entorno de pruebas; no introducir datos reales.
