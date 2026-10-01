@@ -65,7 +65,7 @@ async function loadDashboard(){if(!sb)return;const {data:{user}}=await sb.auth.g
  if(!user){state.application=null;state.isBuilder=false;go('welcome');return;}
  const [{data:app,error:appError},{data:builder,error:builderError}]=await Promise.all([sb.from('applications').select('id,full_name,wfg_id,status').eq('agent_id',user.id).maybeSingle(),sb.from('constructors').select('user_id').eq('user_id',user.id).maybeSingle()]);
  if(appError||builderError){setMessage('No se pudo consultar el estado de tu cuenta. Comprueba la configuración y los permisos de la base de datos.',true);return;}
- state.application=app;state.isBuilder=!!builder||app?.status==='approved';state.builderCenterOpen=false;state.builderTab='home';state.agentRouteExpanded=false;go('dashboard');
+ state.application=app;state.isBuilder=!!builder||app?.status==='approved';state.builderCenterOpen=!!state.isBuilder;state.builderTab='home';state.agentRouteExpanded=false;go('dashboard');
 }
 async function loadRequests(){if(state.page!=='dashboard'||!state.isBuilder)return;
  const {data,error}=await sb.from('applications').select('id,agent_id,full_name,wfg_id,status,created_at').eq('constructor_id',state.user.id).order('created_at',{ascending:false});
@@ -347,6 +347,27 @@ async function saveTeamAgentStep(row,status,control){
 }
 async function busy(button,fn){button.disabled=true;try{await fn()}catch(e){setMessage(friendly(e),true)}finally{button.disabled=false}}
 function friendly(e){const msg=e?.message||'Operación no completada';if(/invalid login credentials/i.test(msg))return 'Credenciales incorrectas.';if(/email not confirmed/i.test(msg))return 'Debes verificar primero tu correo.';if(/already registered/i.test(msg))return 'Este correo ya tiene una cuenta. Inicia sesión.';return msg;}
+async function openConstructorProfile(){
+ closeDashboardPopovers();
+ const panel=$('constructor-profile-panel'); if(!panel)return;
+ panel.hidden=false;
+ let profile=null;
+ try{const {data,error}=await sb.from('constructor_profiles').select('first_name,last_name,level,agent_code,contact,photo_url').eq('user_id',state.user.id).maybeSingle();if(error)throw error;profile=data;}catch(e){setMessage(friendly(e),true);}
+ const a=state.application||{};
+ const parts=String(a.full_name||'').trim().split(/\s+/); const first=profile?.first_name||parts.shift()||'', last=profile?.last_name||parts.join(' ')||'';
+ panel.innerHTML=`<h2>Perfil del Constructor</h2><div class="center">${profile?.photo_url?`<img src="${esc(profile.photo_url)}" alt="Foto de perfil" style="width:96px;height:96px;border-radius:50%;object-fit:cover;border:1px solid #dbe2e9">`:'<div style="width:96px;height:96px;border-radius:50%;background:#eef1f5;margin:0 auto 10px;display:grid;place-items:center;font-size:2rem">👤</div>'}</div><form id="constructor-profile-form">${field('Nombre','first_name','text',first,'maxlength="80"')}${field('Apellido','last_name','text',last,'maxlength="80"')}<label class="field"><span>Nivel</span><select name="level" style="width:100%;min-height:46px;border:1px solid #b6c2d0;border-radius:10px;padding:12px;background:white"><option value="trainee_associate" ${profile?.level==='trainee_associate'?'selected':''}>Asociado en entrenamiento</option><option value="associate" ${profile?.level==='associate'?'selected':''}>Asociado</option><option value="manager" ${profile?.level==='manager'?'selected':''}>Manager</option><option value="agency" ${profile?.level==='agency'?'selected':''}>Agencia</option></select></label>${field('Código de agente','agent_code','text',profile?.agent_code||a.wfg_id||'','maxlength="40"')}${field('Contacto','contact','text',profile?.contact||'','maxlength="120"')}${field('URL de foto','photo_url','url',profile?.photo_url||'','maxlength="500"')}<button class="btn" type="submit">Guardar perfil</button><button class="btn alt" type="button" id="close-constructor-profile">Cerrar</button></form>`;
+ panel.scrollIntoView({behavior:'smooth',block:'start'});
+ $('close-constructor-profile').onclick=()=>panel.hidden=true;
+ $('constructor-profile-form').onsubmit=async e=>{e.preventDefault();const b=e.currentTarget.querySelector('button[type=submit]'),f=new FormData(e.currentTarget);await busy(b,async()=>{const payload={user_id:state.user.id,first_name:String(f.get('first_name')).trim(),last_name:String(f.get('last_name')).trim(),level:String(f.get('level')),agent_code:String(f.get('agent_code')).trim()||null,contact:String(f.get('contact')).trim()||null,photo_url:String(f.get('photo_url')).trim()||null,updated_at:new Date().toISOString()};const {error}=await sb.from('constructor_profiles').upsert(payload,{onConflict:'user_id'});if(error)throw error;setMessage('Perfil guardado.');await openConstructorProfile();});};
+}
+function openBusinessReport(){
+ closeDashboardPopovers();
+ const b=state.business||{}, g=state.gxRegistered||{}, gx=state.gx||{};
+ const protectionText=$('protection-summary')?.innerText||'Sin datos cargados';
+ const w=window.open('','_blank'); if(!w){setMessage('Permite ventanas emergentes para generar el reporte PDF.',true);return;}
+ const name=state.application?.full_name||state.user?.email||'Constructor';
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Reporte Progressia</title><style>body{font-family:-apple-system,system-ui,sans-serif;color:#172c43;padding:28px;line-height:1.5}h1{margin-bottom:4px}.card{border:1px solid #dbe2e9;border-radius:12px;padding:14px;margin:12px 0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media print{button{display:none}}</style></head><body><h1>Reporte de negocio · Progressia</h1><p>${esc(name)} · ${esc(new Date().toLocaleString('es-US'))}</p><div class="grid"><div class="card"><strong>Producción registrada</strong><br>${esc(Number(b.production_points_total||0).toLocaleString('en-US',{maximumFractionDigits:2}))} puntos</div><div class="card"><strong>Cash flow estimado</strong><br>$${esc(Number(b.cash_flow_estimated||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}))}</div><div class="card"><strong>Puntos hacia GX · 12 meses</strong><br>${esc(Number(g.registered_points_rolling||0).toLocaleString('en-US',{maximumFractionDigits:2}))}</div><div class="card"><strong>Puntos verificados · 12 meses</strong><br>${esc(Number(g.verified_points_rolling||0).toLocaleString('en-US',{maximumFractionDigits:2}))}</div></div><div class="card"><strong>GX actual</strong><br>${esc(gx.current_gx??gx.gx_current??'GX0')}</div><div class="card"><strong>Mi impacto</strong><pre style="white-space:pre-wrap;font:inherit">${esc(protectionText)}</pre></div><p><small>Cash flow estimado: cálculo informativo; no confirma una comisión pagada. GX oficial depende de información verificada.</small></p><button onclick="window.print()">Imprimir / Guardar como PDF</button></body></html>`);w.document.close();
+}
 function attach(){
  const on=(id,fn)=>{const el=$(id);if(el)el.addEventListener('click',fn)};
  on('start',()=>go('choose'));on('to-login',()=>go('login'));on('to-signup',()=>go('signup'));on('back',()=>go(state.page==='choose'?'welcome':'choose'));on('forgot',()=>go('forgot'));
